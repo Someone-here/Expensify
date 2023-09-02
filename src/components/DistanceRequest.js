@@ -36,6 +36,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {iouPropTypes} from '../pages/iou/propTypes';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
+import DistanceRequestUtils from '../libs/DistanceRequestUtils';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -93,37 +94,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     const shouldFetchRoute = (!doesRouteExist || haveWaypointsChanged) && !isLoadingRoute && TransactionUtils.validateWaypoints(waypoints);
 
     const waypointMarkers = useMemo(
-        () =>
-            _.filter(
-                _.map(waypoints, (waypoint, key) => {
-                    if (!waypoint || !lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
-                        return;
-                    }
-
-                    const index = Number(key.replace('waypoint', ''));
-                    let MarkerComponent;
-                    if (index === 0) {
-                        MarkerComponent = Expensicons.DotIndicatorUnfilled;
-                    } else if (index === lastWaypointIndex) {
-                        MarkerComponent = Expensicons.Location;
-                    } else {
-                        MarkerComponent = Expensicons.DotIndicator;
-                    }
-
-                    return {
-                        id: `${waypoint.lng},${waypoint.lat},${index}`,
-                        coordinate: [waypoint.lng, waypoint.lat],
-                        markerComponent: () => (
-                            <MarkerComponent
-                                width={CONST.MAP_MARKER_SIZE}
-                                height={CONST.MAP_MARKER_SIZE}
-                                fill={theme.icon}
-                            />
-                        ),
-                    };
-                }),
-                (waypoint) => waypoint,
-            ),
+        () => DistanceRequestUtils.getWaypointMarkers(waypoints),
         [waypoints, lastWaypointIndex],
     );
 

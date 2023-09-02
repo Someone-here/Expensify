@@ -1,6 +1,10 @@
+import React from 'react';
 import _ from 'underscore';
 import CONST from '../CONST';
 import * as CurrencyUtils from './CurrencyUtils';
+import theme from '../styles/themes/default';
+import * as Expensicons from '../components/Icon/Expensicons';
+
 
 /**
  * Retrieves the default mileage rate based on a given policy.
@@ -94,4 +98,45 @@ const getDistanceRequestAmount = (distance, unit, rate) => {
     return convertedDistance * rate;
 };
 
-export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};
+/**
+ * Gets the appropriate marker components for waypoints to show on map
+ * 
+ * @param {Object[]} waypoints - An array of waypoints with lat and lng
+ * @returns {Object[]} An array having all waypoints with the appropriate marker components. 
+ */
+const getWaypointMarkers = (waypoints) => {
+    const numberOfWaypoints = _.size(waypoints);
+    const lastWaypointIndex = numberOfWaypoints - 1;
+    return _.filter(
+        _.map(waypoints, (waypoint, key) => {
+            if (!waypoint || waypoint.lng === undefined || waypoint.lat === undefined) {
+                return;
+            }
+
+            const index = Number(key.replace('waypoint', ''));
+            let MarkerComponent;
+            if (index === 0) {
+                MarkerComponent = Expensicons.DotIndicatorUnfilled;
+            } else if (index === lastWaypointIndex) {
+                MarkerComponent = Expensicons.Location;
+            } else {
+                MarkerComponent = Expensicons.DotIndicator;
+            }
+
+            return {
+                id: `${waypoint.lng},${waypoint.lat},${index}`,
+                coordinate: [waypoint.lng, waypoint.lat],
+                markerComponent: () => (
+                    <MarkerComponent
+                        width={CONST.MAP_MARKER_SIZE}
+                        height={CONST.MAP_MARKER_SIZE}
+                        fill={theme.icon}
+                    />
+                ),
+            };
+        }),
+        (waypoint) => waypoint,
+    );
+};
+
+export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount, getWaypointMarkers};
