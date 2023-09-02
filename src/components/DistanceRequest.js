@@ -86,7 +86,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
-    const hasRouteError = lodashHas(transaction, 'errorFields.route');
+    const hasRouteError = Boolean(lodashGet(transaction, 'errorFields.route'));
     const previousWaypoints = usePrevious(waypoints);
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
     const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
@@ -256,7 +256,8 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => IOU.navigateToNextPage(iou, iouType, reportID, report)}
                 pressOnEnter
-                isDisabled={waypointMarkers.length < 2}
+                isLoading={isLoadingRoute}
+                isDisabled={waypointMarkers.length < 2 || hasRouteError}
                 text={translate('common.next')}
             />
         </>

@@ -80,10 +80,6 @@ function saveWaypoint(transactionID, index, waypoint) {
                 [`waypoint${index}`]: waypoint,
             },
         },
-        // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
-        errorFields: {
-            route: null,
-        },
 
         // Clear the existing route so that we don't show an old route
         routes: {
