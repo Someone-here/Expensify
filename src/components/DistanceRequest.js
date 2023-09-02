@@ -35,7 +35,6 @@ import DotIndicatorMessage from './DotIndicatorMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {iouPropTypes} from '../pages/iou/propTypes';
 import reportPropTypes from '../pages/reportPropTypes';
-import * as IOU from '../libs/actions/IOU';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
 
 const MAX_WAYPOINTS = 25;
@@ -74,14 +73,13 @@ const defaultProps = {
     },
 };
 
-function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken}) {
+function DistanceRequest({onSubmitButtonPressed, transaction, transactionID, mapboxAccessToken}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
-    const reportID = lodashGet(report, 'reportID', '');
     const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
     const numberOfWaypoints = _.size(waypoints);
 
@@ -108,12 +106,12 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     }, []);
 
     useEffect(() => {
-        if (!iou.transactionID || !_.isEmpty(waypoints)) {
+        if (!transactionID || !_.isEmpty(waypoints)) {
             return;
         }
         // Create the initial start and stop waypoints
-        Transaction.createInitialWaypoints(iou.transactionID);
-    }, [iou.transactionID, waypoints]);
+        Transaction.createInitialWaypoints(transactionID);
+    }, [transactionID, waypoints]);
 
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
@@ -126,8 +124,8 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
             return;
         }
 
-        Transaction.getRoute(iou.transactionID, waypoints);
-    }, [shouldFetchRoute, iou.transactionID, waypoints, isOffline]);
+        Transaction.getRoute(transactionID, waypoints);
+    }, [shouldFetchRoute, transactionID, waypoints, isOffline]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
@@ -190,7 +188,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(iou.transactionID)}
+                    onPress={() => Transaction.addStop(transactionID)}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
@@ -225,7 +223,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
             <Button
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                onPress={() => IOU.navigateToNextPage(iou, iouType, reportID, report)}
+                onPress={onSubmitButtonPressed}
                 pressOnEnter
                 isLoading={isLoadingRoute}
                 isDisabled={waypointMarkers.length < 2 || hasRouteError}
@@ -240,7 +238,7 @@ DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.iou.transactionID}`,
+        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
     },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
